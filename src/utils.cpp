@@ -22,7 +22,7 @@ std::string get_temperature() {
 
   hnd = curl_easy_init();
   curl_easy_setopt(hnd, CURLOPT_BUFFERSIZE, 102400L);
-  curl_easy_setopt(hnd, CURLOPT_URL, "https://api.tomorrow.io/v4/weather/realtime?location=29.734063834504845%2C%20-95.48287469505175&units=imperial&apikey={key here}");
+  curl_easy_setopt(hnd, CURLOPT_URL, "https://api.tomorrow.io/v4/weather/realtime?location=29.734063834504845%2C%20-95.48287469505175&units=imperial&apikey=");
   curl_easy_setopt(hnd, CURLOPT_NOPROGRESS, 1L);
   curl_easy_setopt(hnd, CURLOPT_USERAGENT, "curl/8.7.1");
   curl_easy_setopt(hnd, CURLOPT_MAXREDIRS, 50L);

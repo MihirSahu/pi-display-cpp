@@ -52,27 +52,21 @@ gboolean update_variables(gpointer data) {
   return TRUE;
 }
 
-/*
 gboolean update_time (gpointer args) {
   UpdateTimeArgs *new_args = (UpdateTimeArgs *)args;
   std::unordered_map<std::string, std::string> *data = new_args->data;
-  std::cout << &data << std::endl;
   Gtk::Label *new_label = static_cast<Gtk::Label *>(new_args->label);
 
-  std::cout << "Creating new time" << std::endl;
   std::time_t now = std::time(nullptr);
   std::tm* local_tm = std::localtime(&now);
   std::ostringstream oss;
-  oss << std::put_time(local_tm, "%Y-%m-%d %H:%M:%S");
+  oss << std::put_time(local_tm, "%A, %B %d - %I:%M:%S %p");
   data->at("time") = oss.str();
 
-  std::cout << "Setting new time to: " << data->at("time") << std::endl;
   (*new_label).set_text(data->at("time"));
-  std::cout << "Set time" << std::endl;
 
   return TRUE;
 }
-*/
 
 gboolean update_screen(gpointer args) {
   UpdateScreenArgs *new_args = (UpdateScreenArgs *)args;
@@ -90,48 +84,16 @@ gboolean update_screen(gpointer args) {
 
   // Conditional css
   if (*data_index == 0) {
-    std::cout << "Changing time" << std::endl;
-    //std::cout << "Calling update_time" << std::endl;
-    //UpdateTimeArgs timeArgs = {data, new_label};
-    //std::cout << timeArgs.data << std::endl;
-    //guint update_time_timeout_id = g_timeout_add_seconds(1, &update_time, &timeArgs);
-    //data->at("time_timeout_id") = update_time_timeout_id;
-    (*css_provider)->load_from_data(R"(
-      * {
-        background-color: #27292D;
-      }
-
-      .label1 {
-        font-size: 500%;
-        font-weight: 500;
-        color: white;
-      }
-
-      .metrics_label {
-       font-size: xx-large;
-        font-weight: 500;
-        color: white;
-      }
-
-      .button1 {
-        font-size: large;
-        font-weight: 100;
-        color: white;
-        padding: 10px;
-      } 
-    )");
-    std::time_t now = std::time(nullptr);
-    std::tm* local_tm = std::localtime(&now);
-    std::ostringstream oss;
-    //oss << std::put_time(local_tm, "%a %d, %Y - %I:%M%p");
-    oss << std::put_time(local_tm, "%a %d, %Y");
-    data->at("time") = oss.str();
-  }
-  else if (*data_index == 1) {
     std::cout << "Changing cat_fact" << std::endl;
     (*css_provider)->load_from_data(R"(
       * {
         background-color: #27292D;
+      }
+
+      .time_label {
+       font-size: xx-large;
+        font-weight: 500;
+        color: white;
       }
 
       .label1 {
@@ -157,11 +119,17 @@ gboolean update_screen(gpointer args) {
     //g_source_remove(std::stoul(data->at("time_timeout_id")));
     //std::cout << "Setting new label: " << (data->at(data_order->at(*data_index))) << std::endl;
   }
-  else if (*data_index == 2) {
+  else if (*data_index == 1) {
     std::cout << "Changing temperature" << std::endl;
     (*css_provider)->load_from_data(R"(
       * {
         background-color: #27292D;
+      }
+
+      .time_label {
+       font-size: xx-large;
+        font-weight: 500;
+        color: white;
       }
 
       .label1 {
@@ -204,13 +172,13 @@ int main(int argc, char *argv[]) {
   //g_resources_register(resource);
 
   std::unordered_map<std::string, std::string> data;
-  std::vector<std::string> data_order = {"time", "cat_fact", "temperature"};
+  std::vector<std::string> data_order = {"cat_fact", "temperature"};
   int data_index = 0;
 
   std::time_t now = std::time(nullptr);
   std::tm* local_tm = std::localtime(&now);
   std::ostringstream oss;
-  oss << std::put_time(local_tm, "%a %d, %Y - %I:%M %p");
+  oss << std::put_time(local_tm, "%a %d, %Y");
 
   data["time"] = oss.str();
   data["time_timeout_id"] = "";
@@ -227,6 +195,13 @@ int main(int argc, char *argv[]) {
   main_box.set_hexpand(true);
   main_box.set_vexpand(true);
   main_box.get_style_context()->add_class("main_box");
+
+  Gtk::Box time_box = Gtk::Box(Gtk::ORIENTATION_VERTICAL);
+  time_box.set_halign(Gtk::ALIGN_CENTER);
+  time_box.set_valign(Gtk::ALIGN_START);
+  Gtk::Label time_label = Gtk::Label(data["time"]);
+  time_label.get_style_context()->add_class("time_label");
+  time_box.add(time_label);
 
   Gtk::Box center_box = Gtk::Box(Gtk::ORIENTATION_VERTICAL);
   center_box.set_halign(Gtk::ALIGN_CENTER);
@@ -245,6 +220,7 @@ int main(int argc, char *argv[]) {
   metrics_label.get_style_context()->add_class("metrics_label");
   bottom_box.add(metrics_label);
 
+  main_box.pack_start(time_box);
   main_box.pack_start(center_box);
   main_box.pack_end(bottom_box);
   //main_box.pack_start(center_box, Gtk::PACK_EXPAND_WIDGET);
@@ -258,6 +234,12 @@ int main(int argc, char *argv[]) {
   const std::string css_data = R"(
     * {
       background-color: #27292D;
+    }
+
+    .time_label {
+     font-size: xx-large;
+      font-weight: 500;
+      color: white;
     }
 
     .label1 {
@@ -286,9 +268,10 @@ int main(int argc, char *argv[]) {
       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
   UpdateScreenArgs screenArgs = {&data, &data_order, &label, &data_index, &css_provider, &metrics_label};
-  UpdateTimeArgs timeArgs = {&data, &label};
-  guint update_variables_timeout_id = g_timeout_add_seconds(1800, &update_variables, &data);
-  guint update_screen_timeout_id = g_timeout_add_seconds(300, &update_screen, &screenArgs);
+  UpdateTimeArgs timeArgs = {&data, &time_label};
+  guint update_variables_timeout_id = g_timeout_add_seconds(10, &update_variables, &data);
+  guint update_screen_timeout_id = g_timeout_add_seconds(5, &update_screen, &screenArgs);
+  guint update_time_timeout_id = g_timeout_add_seconds(1, &update_time, &timeArgs);
 
   Gtk::Window window;
   window.set_default_size(400, 300);
@@ -298,7 +281,7 @@ int main(int argc, char *argv[]) {
   center_box.show_all();
   bottom_box.show_all();
 
-  window.fullscreen();
+  //window.fullscreen();
 
   return app->run(window);
 }
