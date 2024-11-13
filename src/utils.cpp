@@ -106,7 +106,7 @@ std::string getCPUUsage() {
 
     // Calculate usage as the fraction of non-idle CPU time
     double total = delta_user + delta_nice + delta_system + delta_idle;
-    return std::to_string((delta_user + delta_nice + delta_system) / total * 100.0);
+    return std::to_string((delta_user + delta_nice + delta_system) / total * 100.0) + "%";
 }
 
 std::string getMemoryUsage() {
@@ -123,7 +123,7 @@ std::string getMemoryUsage() {
         }
     }
 
-    return std::to_string(((total_memory - free_memory) / (double)total_memory) * 100.0);
+    return std::to_string(((total_memory - free_memory) / (double)total_memory) * 100.0) + "%";
 }
 
 std::string getUptime() {
@@ -131,12 +131,14 @@ std::string getUptime() {
     double uptime;
     file >> uptime;
     std::cout << "uptime: " << uptime << std::endl;
-    return std::to_string(uptime);
+    int days = uptime / 86400;
+    int hours = (int)uptime % 86400 / 3600;
+    return std::to_string(days) + " days, " + std::to_string(hours) + " hours";
 }
 
 std::string getCPUTemperature() {
     std::ifstream file("/sys/class/thermal/thermal_zone0/temp");
     double temperature;
     file >> temperature;
-    return std::to_string(temperature / 1000.0);  // Convert from millidegree to degree
+    return std::to_string(temperature / 1000.0) + "\302\260C";  // Convert from millidegree to degree
 }

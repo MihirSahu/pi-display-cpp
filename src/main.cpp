@@ -35,16 +35,16 @@ gboolean update_variables(gpointer data) {
   auto *new_data = ((std::unordered_map<std::string, std::string> *)data);
   std::string temperature = get_temperature();
   std::string cat_fact = get_cat_fact();
-  std::string cpu_usage = getCPUUsage();
+  //std::string cpu_usage = getCPUUsage();
   std::string memory_usage = getMemoryUsage();
   std::string uptime = getUptime();
   std::string pi_temperature = getCPUTemperature();
 
-  std::cout << temperature << " " << cat_fact << " " << cpu_usage << " " << memory_usage << " " << uptime << " " << pi_temperature << std::endl;
+  std::cout << temperature << " " << cat_fact << " " << /*cpu_usage <<*/ " " << memory_usage << " " << uptime << " " << pi_temperature << std::endl;
 
-  new_data->at("temperature") = temperature + "\302\260 Fahrenheit";
+  new_data->at("temperature") = temperature + "\302\260F";
   new_data->at("cat_fact") = cat_fact;
-  new_data->at("cpu_usage") = cpu_usage;
+  //new_data->at("cpu_usage") = cpu_usage;
   new_data->at("memory_usage") = memory_usage;
   new_data->at("uptime") = uptime;
   new_data->at("pi_temperature") = pi_temperature;
@@ -159,7 +159,7 @@ gboolean update_screen(gpointer args) {
   new_label->set_text((data->at(data_order->at(*data_index))));
   *data_index = (*data_index + 1) % data_order->size();
 
-  new_metrics_label->set_text("CPU - " + data->at("CPU") + " RAM - " + data->at("memory_usage") + " Uptime - " + data->at("uptime") + " Pi Temp - " + data->at("pi_temperature"));
+  new_metrics_label->set_text(/*"CPU - " + data->at("CPU") + " RAM - "*/ "RAM - " + data->at("memory_usage") + " Uptime - " + data->at("uptime") + " Pi Temp - " + data->at("pi_temperature"));
 
   return TRUE;
 }
@@ -168,8 +168,6 @@ int main(int argc, char *argv[]) {
   curl_global_init(CURL_GLOBAL_DEFAULT);
 
   auto app = Gtk::Application::create(argc, argv, "org.gtkmm.example");
-  //auto resource = g_resource_ref(styles_get_resource());
-  //g_resources_register(resource);
 
   std::unordered_map<std::string, std::string> data;
   std::vector<std::string> data_order = {"cat_fact", "temperature"};
@@ -184,7 +182,7 @@ int main(int argc, char *argv[]) {
   data["time_timeout_id"] = "";
   data["temperature"] = "Temperature";
   data["cat_fact"] = "Cat Fact";
-  data["cpu_usage"] = "";
+  //data["cpu_usage"] = "";
   data["memory_usage"] = "";
   data["uptime"] = "";
   data["pi_temperature"] = "";
@@ -216,7 +214,7 @@ int main(int argc, char *argv[]) {
   Gtk::Box bottom_box = Gtk::Box(Gtk::ORIENTATION_VERTICAL);
   bottom_box.set_halign(Gtk::ALIGN_CENTER);
   bottom_box.set_valign(Gtk::ALIGN_END);
-  Gtk::Label metrics_label = Gtk::Label("CPU - " + data["CPU"] + " RAM - " + data["memory_usage"] + " Uptime - " + data["uptime"] + " Pi Temp - " + data["pi_temperature"]);
+  Gtk::Label metrics_label = Gtk::Label(/*"CPU - " + data["CPU"] + " RAM - "*/ "RAM - " + data["memory_usage"] + " Uptime - " + data["uptime"] + " Pi Temp - " + data["pi_temperature"]);
   metrics_label.get_style_context()->add_class("metrics_label");
   bottom_box.add(metrics_label);
 
@@ -281,7 +279,7 @@ int main(int argc, char *argv[]) {
   center_box.show_all();
   bottom_box.show_all();
 
-  //window.fullscreen();
+  window.fullscreen();
 
   return app->run(window);
 }
