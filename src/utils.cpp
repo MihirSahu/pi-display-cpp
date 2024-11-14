@@ -113,6 +113,7 @@ std::string getMemoryUsage() {
     std::ifstream file("/proc/meminfo");
     std::string line;
     long total_memory = 0, free_memory = 0;
+    std::ostringstream oss;
 
     while (std::getline(file, line)) {
         if (line.find("MemTotal:") == 0) {
@@ -123,7 +124,8 @@ std::string getMemoryUsage() {
         }
     }
 
-    return std::to_string(((total_memory - free_memory) / (double)total_memory) * 100.0) + "%";
+    oss << std::fixed << std::setprecision(2) << ((total_memory - free_memory) / (double)total_memory) * 100.0;
+    return oss.str() + "%";
 }
 
 std::string getUptime() {
@@ -139,6 +141,9 @@ std::string getUptime() {
 std::string getCPUTemperature() {
     std::ifstream file("/sys/class/thermal/thermal_zone0/temp");
     double temperature;
+    std::ostringstream oss;
+
     file >> temperature;
-    return std::to_string(temperature / 1000.0) + "\302\260C";  // Convert from millidegree to degree
+    oss << std::fixed << std::setprecision(2) << temperature / 1000.0;
+    return oss.str() + "\302\260C";  // Convert from millidegree to degree
 }
