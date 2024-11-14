@@ -15,7 +15,7 @@ make && MyGTKApp
 ```
 
 ## Todo
-[ ] Refactor update_screen function, update system metrics independently of main label
-[ ] Refactor css implementation
+[x] Refactor update_screen function, update system metrics independently of main label
+[x] Refactor css implementation
 [ ] Add calendar integration to display upcoming events
 [ ] Add Linear integration to display tasks for the day

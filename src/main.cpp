@@ -21,7 +21,6 @@ struct UpdateScreenArgs {
   Gtk::Label *label;
   int *data_index;
   Glib::RefPtr<Gtk::CssProvider> *css_provider;
-  Gtk::Label *metrics_label;
   std::string *css;
 };
 
@@ -30,30 +29,13 @@ struct UpdateTimeArgs {
   Gtk::Label *label;
 };
 
-gboolean update_variables(gpointer data) {
-  std::cout << "Updating variables" << std::endl;
-
-  auto *new_data = ((std::unordered_map<std::string, std::string> *)data);
-  std::string temperature = get_temperature();
-  std::string cat_fact = get_cat_fact();
-  //std::string cpu_usage = getCPUUsage();
-  std::string memory_usage = getMemoryUsage();
-  std::string uptime = getUptime();
-  std::string pi_temperature = getCPUTemperature();
-
-  std::cout << temperature << " " << cat_fact << " " << /*cpu_usage <<*/ " " << memory_usage << " " << uptime << " " << pi_temperature << std::endl;
-
-  new_data->at("temperature") = temperature + "\302\260F";
-  new_data->at("cat_fact") = cat_fact;
-  //new_data->at("cpu_usage") = cpu_usage;
-  new_data->at("memory_usage") = memory_usage;
-  new_data->at("uptime") = uptime;
-  new_data->at("pi_temperature") = pi_temperature;
-
-  return TRUE;
-}
+struct UpdateSystemMetricsArgs {
+  std::unordered_map<std::string, std::string> *data;
+  Gtk::Label *metrics_label;
+};
 
 gboolean update_time (gpointer args) {
+  std::cout << "Updating time" << std::endl;
   UpdateTimeArgs *new_args = (UpdateTimeArgs *)args;
   std::unordered_map<std::string, std::string> *data = new_args->data;
   Gtk::Label *new_label = static_cast<Gtk::Label *>(new_args->label);
@@ -69,17 +51,33 @@ gboolean update_time (gpointer args) {
   return TRUE;
 }
 
+gboolean update_system_metrics(gpointer args) {
+  std::cout << "Updating system metrics" << std::endl;
+  UpdateSystemMetricsArgs *new_args = (UpdateSystemMetricsArgs *)args;
+  std::unordered_map<std::string, std::string> *data = new_args->data;
+  Gtk::Label *new_metrics_label = static_cast<Gtk::Label *>(new_args->metrics_label);
+
+  std::string memory_usage = getMemoryUsage();
+  std::string uptime = getUptime();
+  std::string pi_temperature = getCPUTemperature();
+
+  data->at("memory_usage") = memory_usage;
+  data->at("uptime") = uptime;
+  data->at("pi_temperature") = pi_temperature;
+  new_metrics_label->set_text(/*"CPU - " + data->at("CPU") + " RAM - "*/ "RAM - " + data->at("memory_usage") + " Uptime - " + data->at("uptime") + " Pi Temp - " + data->at("pi_temperature"));
+
+  return TRUE;
+};
+
 gboolean update_screen(gpointer args) {
+  std::cout << "Updating main label" << std::endl;
   UpdateScreenArgs *new_args = (UpdateScreenArgs *)args;
   std::unordered_map<std::string, std::string> *data = (std::unordered_map<std::string, std::string> *)(new_args->data);
   std::vector<std::string> *data_order = (std::vector<std::string> *)(new_args->data_order);
   Gtk::Label *new_label = static_cast<Gtk::Label *>(new_args->label);
   int *data_index = (int *)(new_args->data_index);
   Glib::RefPtr<Gtk::CssProvider> *css_provider = (Glib::RefPtr<Gtk::CssProvider>*)(new_args->css_provider);
-  Gtk::Label *new_metrics_label = static_cast<Gtk::Label*>(new_args->metrics_label);
   std::string *css = (std::string*)(new_args->css);
-
-  std::cout << "Updating screen. data_index = " << *data_index << std::endl;
 
   // Reset css
   (*css_provider)->load_from_data("");
@@ -88,10 +86,14 @@ gboolean update_screen(gpointer args) {
   if (*data_index == 0) {
     std::cout << "Changing cat_fact" << std::endl;
     (*css_provider)->load_from_data(*css);
+    std::string cat_fact = get_cat_fact();
+    data->at("cat_fact") = cat_fact;
   }
   else if (*data_index == 1) {
     std::cout << "Changing temperature" << std::endl;
     (*css_provider)->load_from_data(*css);
+    std::string temperature = get_temperature();
+    data->at("temperature") = temperature + "\302\260F";
     //std::cout << "Removing update_time" << std::endl;
     //g_source_remove(std::stoul(data->at("time_timeout_id")));
     //std::cout << "Setting new label: " << (data->at(data_order->at(*data_index))) << std::endl;
@@ -99,8 +101,6 @@ gboolean update_screen(gpointer args) {
 
   new_label->set_text((data->at(data_order->at(*data_index))));
   *data_index = (*data_index + 1) % data_order->size();
-
-  new_metrics_label->set_text(/*"CPU - " + data->at("CPU") + " RAM - "*/ "RAM - " + data->at("memory_usage") + " Uptime - " + data->at("uptime") + " Pi Temp - " + data->at("pi_temperature"));
 
   return TRUE;
 }
@@ -158,8 +158,6 @@ int main(int argc, char *argv[]) {
   data["uptime"] = "";
   data["pi_temperature"] = "";
 
-  update_variables(&data);
-
   Gtk::Box main_box = Gtk::Box(Gtk::ORIENTATION_VERTICAL);
   main_box.set_halign(Gtk::ALIGN_FILL);
   main_box.set_valign(Gtk::ALIGN_FILL);
@@ -214,10 +212,11 @@ int main(int argc, char *argv[]) {
       Gdk::Screen::get_default(), css_provider,
       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-  UpdateScreenArgs screenArgs = {&data, &data_order, &label, &data_index, &css_provider, &metrics_label, &css};
+  UpdateScreenArgs screenArgs = {&data, &data_order, &label, &data_index, &css_provider, &css};
   UpdateTimeArgs timeArgs = {&data, &time_label};
-  guint update_variables_timeout_id = g_timeout_add_seconds(10, &update_variables, &data);
+  UpdateSystemMetricsArgs systemMetricsArgs = {&data, &metrics_label};
   guint update_screen_timeout_id = g_timeout_add_seconds(5, &update_screen, &screenArgs);
+  guint update_system_metrics_timeout_id = g_timeout_add_seconds(5, &update_system_metrics, &systemMetricsArgs);
   guint update_time_timeout_id = g_timeout_add_seconds(1, &update_time, &timeArgs);
 
   Gtk::Window window;

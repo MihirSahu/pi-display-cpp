@@ -132,7 +132,6 @@ std::string getUptime() {
     std::ifstream file("/proc/uptime");
     double uptime;
     file >> uptime;
-    std::cout << "uptime: " << uptime << std::endl;
     int days = uptime / 86400;
     int hours = (int)uptime % 86400 / 3600;
     return std::to_string(days) + " days, " + std::to_string(hours) + " hours";
