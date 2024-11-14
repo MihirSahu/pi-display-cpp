@@ -22,6 +22,7 @@ struct UpdateScreenArgs {
   int *data_index;
   Glib::RefPtr<Gtk::CssProvider> *css_provider;
   Gtk::Label *metrics_label;
+  std::string *css;
 };
 
 struct UpdateTimeArgs {
@@ -70,12 +71,13 @@ gboolean update_time (gpointer args) {
 
 gboolean update_screen(gpointer args) {
   UpdateScreenArgs *new_args = (UpdateScreenArgs *)args;
-  std::unordered_map<std::string, std::string> *data = (std::unordered_map<std::string, std::string> *)(((UpdateScreenArgs *)args)->data);
-  std::vector<std::string> *data_order = (std::vector<std::string> *)(((UpdateScreenArgs *)args)->data_order);
+  std::unordered_map<std::string, std::string> *data = (std::unordered_map<std::string, std::string> *)(new_args->data);
+  std::vector<std::string> *data_order = (std::vector<std::string> *)(new_args->data_order);
   Gtk::Label *new_label = static_cast<Gtk::Label *>(new_args->label);
-  int *data_index = (int *)(((UpdateScreenArgs *)args)->data_index);
-  Glib::RefPtr<Gtk::CssProvider> *css_provider = (Glib::RefPtr<Gtk::CssProvider>*)(((UpdateScreenArgs*)args)->css_provider);
+  int *data_index = (int *)(new_args->data_index);
+  Glib::RefPtr<Gtk::CssProvider> *css_provider = (Glib::RefPtr<Gtk::CssProvider>*)(new_args->css_provider);
   Gtk::Label *new_metrics_label = static_cast<Gtk::Label*>(new_args->metrics_label);
+  std::string *css = (std::string*)(new_args->css);
 
   std::cout << "Updating screen. data_index = " << *data_index << std::endl;
 
@@ -85,43 +87,33 @@ gboolean update_screen(gpointer args) {
   // Conditional css
   if (*data_index == 0) {
     std::cout << "Changing cat_fact" << std::endl;
-    (*css_provider)->load_from_data(R"(
-      * {
-        background-color: #27292D;
-      }
-
-      .time_label {
-       font-size: xx-large;
-        font-weight: 500;
-        color: white;
-      }
-
-      .label1 {
-        font-size: xx-large;
-        font-weight: 500;
-        color: white;
-      }
-
-      .metrics_label {
-       font-size: xx-large;
-        font-weight: 500;
-        color: white;
-      }
-
-      .button1 {
-        font-size: large;
-        font-weight: 100;
-        color: white;
-        padding: 10px;
-      } 
-    )");
+    (*css_provider)->load_from_data(*css);
+  }
+  else if (*data_index == 1) {
+    std::cout << "Changing temperature" << std::endl;
+    (*css_provider)->load_from_data(*css);
     //std::cout << "Removing update_time" << std::endl;
     //g_source_remove(std::stoul(data->at("time_timeout_id")));
     //std::cout << "Setting new label: " << (data->at(data_order->at(*data_index))) << std::endl;
   }
-  else if (*data_index == 1) {
-    std::cout << "Changing temperature" << std::endl;
-    (*css_provider)->load_from_data(R"(
+
+  new_label->set_text((data->at(data_order->at(*data_index))));
+  *data_index = (*data_index + 1) % data_order->size();
+
+  new_metrics_label->set_text(/*"CPU - " + data->at("CPU") + " RAM - "*/ "RAM - " + data->at("memory_usage") + " Uptime - " + data->at("uptime") + " Pi Temp - " + data->at("pi_temperature"));
+
+  return TRUE;
+}
+
+int main(int argc, char *argv[]) {
+  curl_global_init(CURL_GLOBAL_DEFAULT);
+
+  auto app = Gtk::Application::create(argc, argv, "org.gtkmm.example");
+
+  std::unordered_map<std::string, std::string> data;
+  std::vector<std::string> data_order = {"cat_fact", "temperature"};
+  int data_index = 0;
+  std::string css = R"(
       * {
         background-color: #27292D;
       }
@@ -150,28 +142,7 @@ gboolean update_screen(gpointer args) {
         color: white;
         padding: 10px;
       } 
-    )");
-    //std::cout << "Removing update_time" << std::endl;
-    //g_source_remove(std::stoul(data->at("time_timeout_id")));
-    //std::cout << "Setting new label: " << (data->at(data_order->at(*data_index))) << std::endl;
-  }
-
-  new_label->set_text((data->at(data_order->at(*data_index))));
-  *data_index = (*data_index + 1) % data_order->size();
-
-  new_metrics_label->set_text(/*"CPU - " + data->at("CPU") + " RAM - "*/ "RAM - " + data->at("memory_usage") + " Uptime - " + data->at("uptime") + " Pi Temp - " + data->at("pi_temperature"));
-
-  return TRUE;
-}
-
-int main(int argc, char *argv[]) {
-  curl_global_init(CURL_GLOBAL_DEFAULT);
-
-  auto app = Gtk::Application::create(argc, argv, "org.gtkmm.example");
-
-  std::unordered_map<std::string, std::string> data;
-  std::vector<std::string> data_order = {"cat_fact", "temperature"};
-  int data_index = 0;
+    )";
 
   std::time_t now = std::time(nullptr);
   std::tm* local_tm = std::localtime(&now);
@@ -186,6 +157,8 @@ int main(int argc, char *argv[]) {
   data["memory_usage"] = "";
   data["uptime"] = "";
   data["pi_temperature"] = "";
+
+  update_variables(&data);
 
   Gtk::Box main_box = Gtk::Box(Gtk::ORIENTATION_VERTICAL);
   main_box.set_halign(Gtk::ALIGN_FILL);
@@ -229,30 +202,6 @@ int main(int argc, char *argv[]) {
   //--surface: #27292D;
   //--base: #1F2023;
   //--overflow: #010101;
-  const std::string css_data = R"(
-    * {
-      background-color: #27292D;
-    }
-
-    .time_label {
-     font-size: xx-large;
-      font-weight: 500;
-      color: white;
-    }
-
-    .label1 {
-      font-size: 500%;
-      font-weight: 500;
-      color: white;
-    }
-
-    .button1 {
-      font-size: large;
-      font-weight: 100;
-      color: white;
-      padding: 10px;
-    } 
-  )";
 
   auto css_provider = Gtk::CssProvider::create();
   css_provider->signal_parsing_error().connect(
@@ -260,12 +209,12 @@ int main(int argc, char *argv[]) {
          const Glib::Error &error) {
         std::cerr << "CSS parsing error: " << error.what() << std::endl;
       });
-  css_provider->load_from_data(css_data);
+  css_provider->load_from_data(css);
   Gtk::StyleContext::add_provider_for_screen(
       Gdk::Screen::get_default(), css_provider,
       GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-  UpdateScreenArgs screenArgs = {&data, &data_order, &label, &data_index, &css_provider, &metrics_label};
+  UpdateScreenArgs screenArgs = {&data, &data_order, &label, &data_index, &css_provider, &metrics_label, &css};
   UpdateTimeArgs timeArgs = {&data, &time_label};
   guint update_variables_timeout_id = g_timeout_add_seconds(10, &update_variables, &data);
   guint update_screen_timeout_id = g_timeout_add_seconds(5, &update_screen, &screenArgs);
