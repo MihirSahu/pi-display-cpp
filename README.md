@@ -19,3 +19,4 @@ make && MyGTKApp
 [x] Refactor css implementation
 [ ] Add calendar integration to display upcoming events
 [ ] Add Linear integration to display tasks for the day
+[ ] Life progress bar
