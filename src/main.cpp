@@ -119,19 +119,19 @@ int main(int argc, char *argv[]) {
       }
 
       .time_label {
-       font-size: xx-large;
+       font-size: 400%;
         font-weight: 500;
         color: white;
       }
 
       .label1 {
-        font-size: 500%;
+        font-size: 600%;
         font-weight: 500;
         color: white;
       }
 
       .metrics_label {
-       font-size: xx-large;
+       font-size: 400%;
         font-weight: 500;
         color: white;
       }
