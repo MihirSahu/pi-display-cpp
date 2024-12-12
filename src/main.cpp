@@ -134,7 +134,7 @@ gboolean update_life(gpointer args) {
   // Update the data and labels
   data->at("life") = std::to_string(age_in_days);
 
-  std::cout << "Age in days: " << age_in_days << "\n" << "Time now: " << now << "\n" << "Days left: " << days_left << "\n" << "Hours left: " << hours_left << std::endl;
+  //std::cout << "Age in days: " << age_in_days << "\n" << "Time now: " << now << "\n" << "Days left: " << days_left << "\n" << "Hours left: " << hours_left << std::endl;
 
   std::ostringstream oss;
   oss << std::fixed << std::setprecision(2) << days_left;
@@ -162,7 +162,7 @@ int main(int argc, char *argv[]) {
       }
 
       .time_label {
-       font-size: 400%;
+       font-size: 300%;
         font-weight: 500;
         color: white;
         margin-top: 15px;
@@ -182,7 +182,7 @@ int main(int argc, char *argv[]) {
       }
 
       .metrics_label {
-        font-size: 300%;
+        font-size: 250%;
         font-weight: 500;
         color: white;
         margin-bottom: 15px;
