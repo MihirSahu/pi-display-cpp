@@ -106,15 +106,35 @@ gboolean update_life(gpointer args) {
   Gtk::Label *life_hours_label = static_cast<Gtk::Label *>(new_args->life_hours_label);
   Gtk::ProgressBar *progress_bar = new_args->progress_bar;
 
-  std::chrono::year_month_day birth_date = std::chrono::year{2002} / std::chrono::August / 11;
-  float days_in_ninety_years = 32872.5;
-  const auto now = std::chrono::year_month_day(std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now()));
-  auto age_in_days = std::chrono::duration_cast<std::chrono::days>(std::chrono::sys_days(now) - std::chrono::sys_days(birth_date)).count();
-  auto days_left = days_in_ninety_years - age_in_days;
-  auto hours_left = days_left * 24;
+  // C++20
+  //std::chrono::year_month_day birth_date = std::chrono::year{2002} / std::chrono::August / 11;
+  //auto now = std::chrono::year_month_day(std::chrono::floor<std::chrono::days>(std::chrono::system_clock::now()));
+  //auto age_in_days = std::chrono::duration_cast<std::chrono::days>(std::chrono::sys_days(now) - std::chrono::sys_days(birth_date)).count();
+  //float days_in_ninety_years = 32872.5;
+  //auto days_left = days_in_ninety_years - age_in_days;
+  //auto hours_left = days_left * 24;
+  //data->at("life") = std::to_string(age_in_days);
+
+  // C++10
+  // Define birth date
+  std::tm birth_date_tm = {};
+  birth_date_tm.tm_year = 2002 - 1900;
+  birth_date_tm.tm_mon = 8 - 1;
+  birth_date_tm.tm_mday = 11;
+  std::time_t birth_time = std::mktime(&birth_date_tm);
+  // Get the current time
+  auto now = std::chrono::system_clock::now();
+  std::time_t now_time_t = std::chrono::system_clock::to_time_t(now);
+  // Calculate the difference in days
+  auto age_in_seconds = std::difftime(now_time_t, birth_time);
+  auto age_in_days = age_in_seconds / (60 * 60 * 24); // Convert seconds to days
+  float days_in_ninety_years = 32872.5f;
+  float days_left = days_in_ninety_years - age_in_days;
+  float hours_left = days_left * 24;
+  // Update the data and labels
   data->at("life") = std::to_string(age_in_days);
 
-  std::cout << "Birth date: " << birth_date << "\n" << "Days in 90 years: " << days_in_ninety_years << "\n" << "Age in days: " << age_in_days << "\n" << "Days left: " << days_left << "\n" << "Hours left: " << hours_left << std::endl;
+  std::cout << "Age in days: " << age_in_days << "\n" << "Time now: " << now << "\n" << "Days left: " << days_left << "\n" << "Hours left: " << hours_left << std::endl;
 
   std::ostringstream oss;
   oss << std::fixed << std::setprecision(2) << days_left;
