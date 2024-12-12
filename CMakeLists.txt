@@ -1,11 +1,13 @@
 # CMakeLists.txt
 cmake_minimum_required(VERSION 3.10)
 
+set(CMAKE_CXX_COMPILER "/usr/bin/g++")
+
 # Project name and version
 project(MyGTKApp VERSION 1.0 LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # Find GTKMM, CURL, JSON packages

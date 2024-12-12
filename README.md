@@ -11,7 +11,7 @@ GTK app to display cool stuff on a mini monitor connected to my RPI. I'll probab
 mkdir build
 cd build/
 cmake ..
-make && MyGTKApp
+make && ./MyGTKApp
 ```
 
 ## Todo
