@@ -20,3 +20,5 @@ make && ./MyGTKApp
 [ ] Add calendar integration to display upcoming events
 [ ] Add Linear integration to display tasks for the day
 [ ] Life progress bar
+
+![Monitor picture](./monitor.jpg)
